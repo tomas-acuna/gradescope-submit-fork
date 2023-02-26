@@ -76,54 +76,65 @@ def main():
     else: 
         driver = get_driver(flags[0])
 
-    driver.get('https://gradescope.com/')
-    driver.find_element(By.CLASS_NAME, 'js-logInButton').click()
+    try:
+        driver.get('https://gradescope.com/')
+        driver.find_element(By.CLASS_NAME, 'js-logInButton').click()
 
-    #confirms login information
-    while True:
-        driver.find_element(By.ID, 'session_email').send_keys(email)
-        driver.find_element(By.ID, 'session_password').send_keys(password)
-        driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
-        try:
-            term = driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
-            break
-        except:
-            if config_exists:
-                sys.exit("Config file contains invalid login information.")
-            else:
-                print("Invalid login information. Please try again.")
-                email = input('Email: ').strip()
-                password = pwinput(mask='*').strip()
-                
-    courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
+        # confirms login information
+        while True:
+            driver.find_element(By.ID, 'session_email').send_keys(email)
+            driver.find_element(By.ID, 'session_password').send_keys(password)
+            driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
+            try:
+                term = driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
+                break
+            except:
+                if config_exists:
+                    sys.exit("Config file contains invalid login information.")
+                else:
+                    print("Invalid login information. Please try again.")
+                    email = input('Email: ').strip()
+                    password = pwinput(mask='*').strip()
+                    
+        courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
+        
+        fuc = print_menu('Courses:', 'Choose course: ', courses)
+        courses[fuc].click()
+
+        old_projects = driver.find_elements(By.CSS_SELECTOR, 'th a')
+        new_projects = driver.find_elements(By.CSS_SELECTOR, 'th .js-submitAssignment')
+        # old: a project that has already been submitted
+        # new: a project that has yet to be submitted
+        projects = old_projects + new_projects
+        div = len(old_projects)
+
+        fuc = print_menu('Projects:', 'Choose project: ', projects)
+        projects[fuc].click()
+        
+        if fuc < div:
+            try:
+                driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
+            except:
+                sys.exit('Project is past deadline')
+
+        driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
+        driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
+        print('Project submitted')
+        
+        print()
+        print('SUBMISSION OUTLINE')
+        outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
+        print(outline.text)    
     
-    fuc = print_menu('Courses:', 'Choose course: ', courses)
-    courses[fuc].click()
-
-    old_projects = driver.find_elements(By.CSS_SELECTOR, 'th a')
-    new_projects = driver.find_elements(By.CSS_SELECTOR, 'th .js-submitAssignment')
-    # old: a project that has already been submitted
-    # new: a project that has yet to be submitted
-    projects = old_projects + new_projects
-    div = len(old_projects)
-
-    fuc = print_menu('Projects:', 'Choose project: ', projects)
-    projects[fuc].click()
-    
-    if fuc < div:
-        try:
-            driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
-        except:
-            sys.exit('Project is past deadline')
-
-    driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
-    driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
-    print('Project submitted')
-    
-    print()
-    print('SUBMISSION OUTLINE')
-    outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
-    print(outline.text)    
+    finally:
+        driver.quit()
 
 main()
+
+# TODO
+# with block # DONE
+# fix safari
+# run in background
+# consistency
+# split main into functions
 
