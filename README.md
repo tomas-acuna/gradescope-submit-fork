@@ -2,9 +2,19 @@
 
 Submit files to Gradescope from the command line.
 
-* Basic usage: `python3 gradescope.py <path-to-file>`
-* This requires that you have the `pwinstall` and `selenium` packages installed on your computer. (You can install them using pip.)
-* We also plan to distribute an executable version of this program in the future.
+To compile into executable, run the following commands:
+
+```
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+pyinstaller --onefile -n gss gradescope.py
+deactivate
+```
+
+This will create an executable called `gss` inside a folder called `dist`. You should then move the executable so that it is in your system's PATH.
+
+One you have followed the steps above, you can submit any file to gradescope using `gss <path-to-file>`.
 
 ## Login credentials
 
