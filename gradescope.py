@@ -41,10 +41,20 @@ def print_menu(title, prompt, els):
 
 
 def get_driver(flag):
-    if flag in [ '-f', '--firefox' ]: return webdriver.Firefox()
-    if flag in [ '-c', '--chrome' ]: return webdriver.Chrome()
-    if flag in [ '-e', '--edge']: return webdriver.Edge()
-    if flag in [ '-s', '--safari']: return webdriver.Safari()
+    if flag in [ '-f', '--firefox' ]: 
+        options = webdriver.firefox.options.Options()
+        options.add_argument('-headless')
+        return webdriver.Firefox(options=options)
+    if flag in [ '-c', '--chrome' ]: 
+        options = webdriver.chrome.options.Options()
+        options.add_argument('-headless')
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        return webdriver.Chrome(options=options)
+    if flag in [ '-e', '--edge']: 
+        options = webdriver.edge.options.Options()
+        options.add_argument('-headless')
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        return webdriver.Edge(options=options)
     sys.exit(f'Unknown flag: {flag}')
 
 
@@ -70,9 +80,12 @@ def main():
     file_path = path.abspath(file_arg)
 
     email, password, config_exists = get_login()
+    print('Connecting to Gradescope...')
 
     if len(flags) == 0: 
-        driver = webdriver.Firefox() # default Firefox because master race
+        options = webdriver.firefox.options.Options()
+        options.add_argument('-headless') 
+        driver = webdriver.Firefox(options=options) # default Firefox because master race
     else: 
         driver = get_driver(flags[0])
 
@@ -133,8 +146,8 @@ main()
 
 # TODO
 # with block # DONE
-# fix safari
-# run in background
-# consistency
+# run in background # DONE
+# message consistency
+# print more results
 # split main into functions
 
