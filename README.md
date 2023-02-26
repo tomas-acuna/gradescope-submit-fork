@@ -1,4 +1,4 @@
-# gradescope-cli
+# gradescope-submit
 
 Submit files to Gradescope from the command line.
 
