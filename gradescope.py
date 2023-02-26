@@ -37,7 +37,7 @@ def print_menu(title, prompt, els):
         # TO CLARIFY: FUC means formatted user choice
         if fuc.isdigit() and int(fuc) < len(els): 
             return int(fuc)
-        print('Invalid input')
+        print('Invalid input. Please try again.')
 
 
 def get_driver(flag):
@@ -55,7 +55,7 @@ def get_driver(flag):
         options.add_argument('-headless')
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
         return webdriver.Edge(options=options)
-    sys.exit(f'Unknown flag: {flag}')
+    sys.exit(f'Unknown flag: {flag}.')
 
 
 def partitioned_args():
@@ -70,13 +70,13 @@ def partitioned_args():
 def main():
     flags, args = partitioned_args()
     if len(args) != 1:
-        sys.exit('You must specify exactly one file')
+        sys.exit('You must specify exactly one file.')
     if len(flags) > 1:
-        sys.exit('Too many flags')
+        sys.exit('Too many flags.')
     
     file_arg = args[0]
     if(not path.exists(file_arg)):
-        sys.exit('File does not exist')
+        sys.exit('File does not exist.')
     file_path = path.abspath(file_arg)
 
     email, password, config_exists = get_login()
@@ -128,14 +128,14 @@ def main():
             try:
                 driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
             except:
-                sys.exit('Project is past deadline')
+                sys.exit('Project is past deadline.')
 
         driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
         driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
-        print('Project submitted')
+        print('Project submitted.')
         
         print()
-        print('SUBMISSION OUTLINE')
+        print('SUBMISSION OUTLINE:')
         outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
         print(outline.text)    
     
@@ -145,9 +145,11 @@ def main():
 main()
 
 # TODO
-# with block # DONE
-# run in background # DONE
-# message consistency
+# with block          # DONE
+# run in background   # DONE
+# message consistency # DONE
 # print more results
-# split main into functions
+# refactor main function
+# account for more errors
+# no geckodriver.log
 
