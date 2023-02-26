@@ -142,6 +142,7 @@ def main():
     finally:
         driver.quit()
 
+
 main()
 
 # TODO
@@ -151,5 +152,5 @@ main()
 # print more results
 # refactor main function
 # account for more errors
-# no geckodriver.log?
+# no geckodriver.log
 
