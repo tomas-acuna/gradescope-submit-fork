@@ -85,7 +85,7 @@ def main():
     if len(flags) == 0: 
         options = webdriver.firefox.options.Options()
         options.add_argument('-headless') 
-        driver = webdriver.Firefox(options=options) # default Firefox because master race
+        driver = webdriver.Firefox(options=options)
     else: 
         driver = get_driver(flags[0])
 
