@@ -107,6 +107,12 @@ def main():
 
     driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
     driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
+    print('Project submitted')
+    print()
+    print('SUBMISSION OUTLINE')
+    outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
+    print(outline.text)
+
     
 
 main()
