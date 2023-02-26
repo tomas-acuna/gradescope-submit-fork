@@ -2,7 +2,7 @@
 
 Submit files to Gradescope from the command line.
 
-[gss logo](gsslogo.jpg)
+![gss logo](gsslogo.jpg)
 
 To compile into executable, run the following commands:
 
