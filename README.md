@@ -3,6 +3,8 @@
 Submit files to Gradescope from the command line.
 
 * Basic usage: `python3 gradescope.py <path-to-file>`
+* This requires that you have the `pwinstall` and `selenium` packages installed on your computer. (You can install them using pip.)
+* We also plan to distribute an executable version of this program in the future.
 
 ## Login credentials
 
