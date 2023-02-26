@@ -18,14 +18,14 @@ def get_login():
             print('Reading from ~/.gradescope')
             email = f.readline().strip()
             password = f.readline().strip()
+            return email, password, True
             
     else:
         print('There is no file located at ~/.gradescope')
         email = input('Email: ').strip()
         password = pwinput(mask='*').strip()
-        
-    return email, password
-
+        return email, password, False
+    
 
 def print_menu(title, prompt, els):
     print(title)
@@ -64,26 +64,37 @@ def main():
     if len(flags) > 1:
         sys.exit('Too many flags')
     
-    file_arg = args[0]    
+    file_arg = args[0]
     if(not path.exists(file_arg)):
         sys.exit('File does not exist')
     file_path = path.abspath(file_arg)
 
-    email, password = get_login()
+    email, password, config_exists = get_login()
 
     if len(flags) == 0: 
         driver = webdriver.Firefox() # default Firefox because master race
     else: 
         driver = get_driver(flags[0])
-        
+
     driver.get('https://gradescope.com/')
     driver.find_element(By.CLASS_NAME, 'js-logInButton').click()
-    
-    driver.find_element(By.ID, 'session_email').send_keys(email)
-    driver.find_element(By.ID, 'session_password').send_keys(password)
-    driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
 
-    term = driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
+    #confirms login information
+    while True:
+        driver.find_element(By.ID, 'session_email').send_keys(email)
+        driver.find_element(By.ID, 'session_password').send_keys(password)
+        driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
+        try:
+            term = driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
+            break
+        except:
+            if config_exists:
+                sys.exit("Config file contains invalid login information.")
+            else:
+                print("Invalid login information. Please try again.")
+                email = input('Email: ').strip()
+                password = pwinput(mask='*').strip()
+                
     courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
     
     fuc = print_menu('Courses:', 'Choose course: ', courses)
@@ -100,20 +111,19 @@ def main():
     projects[fuc].click()
     
     if fuc < div:
-        try: 
+        try:
             driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
-        except: 
+        except:
             sys.exit('Project is past deadline')
 
     driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
     driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
     print('Project submitted')
+    
     print()
     print('SUBMISSION OUTLINE')
     outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
-    print(outline.text)
-
-    
+    print(outline.text)    
 
 main()
 
