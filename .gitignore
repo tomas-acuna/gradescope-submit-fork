@@ -1,2 +1,5 @@
 geckodriver.log
 gradescope-test.txt
+gradescope.spec
+build
+dist
