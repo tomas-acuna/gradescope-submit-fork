@@ -151,5 +151,5 @@ main()
 # print more results
 # refactor main function
 # account for more errors
-# no geckodriver.log
+# no geckodriver.log?
 
