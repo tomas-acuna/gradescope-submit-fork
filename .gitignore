@@ -1,6 +1,6 @@
 geckodriver.log
 gradescope-test.txt
-gradescope.spec
+*.spec
 build
 dist
 venv
