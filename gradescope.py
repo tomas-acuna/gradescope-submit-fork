@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 # reads email and password from ~/.gradescope
 # if file does not exist, reads from terminal
 def get_login():
-    cpath = path.expanduser('~') + '/.gradescope'
+    cpath = path.expanduser('~/.gradescope')
     if path.exists(cpath):
         with open(cpath, 'r') as f:
             print('Reading from ~/.gradescope')
@@ -48,12 +48,12 @@ def get_driver(flag):
     if flag in [ '-c', '--chrome' ]: 
         options = webdriver.chrome.options.Options()
         options.add_argument('-headless')
-        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         return webdriver.Chrome(options=options)
     if flag in [ '-e', '--edge']: 
         options = webdriver.edge.options.Options()
         options.add_argument('-headless')
-        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         return webdriver.Edge(options=options)
     sys.exit(f'Unknown flag: {flag}.')
 
@@ -82,12 +82,16 @@ def main():
     email, password, config_exists = get_login()
     print('Connecting to Gradescope...')
 
-    if len(flags) == 0: 
-        options = webdriver.firefox.options.Options()
-        options.add_argument('-headless') 
-        driver = webdriver.Firefox(options=options)
-    else: 
-        driver = get_driver(flags[0])
+    try:
+        # open browser
+        if len(flags) == 0: 
+            options = webdriver.firefox.options.Options()
+            options.add_argument('-headless') 
+            driver = webdriver.Firefox(options=options)
+        else: 
+            driver = get_driver(flags[0])
+    except:
+        sys.exit('Failed to open browser.\nYou can specify a different browser with the flags -e, -c, and -f.')
 
     try:
         driver.get('https://gradescope.com/')
@@ -103,9 +107,9 @@ def main():
                 break
             except:
                 if config_exists:
-                    sys.exit("Config file contains invalid login information.")
+                    sys.exit('Config file contains invalid login information.')
                 else:
-                    print("Invalid login information. Please try again.")
+                    print('Invalid login information. Please try again.')
                     email = input('Email: ').strip()
                     password = pwinput(mask='*').strip()
                     
@@ -146,11 +150,10 @@ def main():
 main()
 
 # TODO
-# with block          # DONE
-# run in background   # DONE
-# message consistency # DONE
+# with block               # DONE
+# run in background        # DONE
+# message consistency      # DONE
 # print more results
 # refactor main function
-# account for more errors
+# account for more errors  
 # no geckodriver.log
-
