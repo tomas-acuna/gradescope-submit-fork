@@ -1,5 +1,5 @@
 # AUTHORS: Owen Bechtel, Omar Osman, Sean O'Dea
-# Hack(H)er413 Event
+# Hack(H)er413 Submission
 # 2/25/2023
 
 import sys
@@ -67,6 +67,22 @@ def partitioned_args():
     return flags, other
 
 
+def gradescope_login(driver, email, password, config_exists):
+    while True:
+        driver.find_element(By.ID, 'session_email').send_keys(email)
+        driver.find_element(By.ID, 'session_password').send_keys(password)
+        driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
+        try:
+            return driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
+        except:
+            if config_exists:
+                sys.exit('Config file contains invalid login information.')
+            else:
+                print('Invalid login information. Please try again.')
+                email = input('Email: ').strip()
+                password = pwinput(mask='*').strip()
+
+
 def main():
     flags, args = partitioned_args()
     if len(args) != 1:
@@ -93,27 +109,13 @@ def main():
     try:
         driver.get('https://gradescope.com/')
         driver.find_element(By.CLASS_NAME, 'js-logInButton').click()
-
-        # confirms login information
-        while True:
-            driver.find_element(By.ID, 'session_email').send_keys(email)
-            driver.find_element(By.ID, 'session_password').send_keys(password)
-            driver.find_element(By.CLASS_NAME, 'tiiBtn-full').click()
-            try:
-                term = driver.find_element(By.CLASS_NAME, 'courseList--coursesForTerm')
-                break
-            except:
-                if config_exists:
-                    sys.exit('Config file contains invalid login information.')
-                else:
-                    print('Invalid login information. Please try again.')
-                    email = input('Email: ').strip()
-                    password = pwinput(mask='*').strip()
-                    
+        
+        term = gradescope_login(driver, email, password, config_exists)                    
         courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
         
         fuc = print_menu('Courses:', 'Choose course: ', courses)
-        courses[fuc].click()
+        chosen_course = courses[fuc]
+        chosen_course.click()
 
         old_projects = driver.find_elements(By.CSS_SELECTOR, 'th a')
         new_projects = driver.find_elements(By.CSS_SELECTOR, 'th .js-submitAssignment')
@@ -123,7 +125,8 @@ def main():
         div = len(old_projects)
 
         fuc = print_menu('Projects:', 'Choose project: ', projects)
-        projects[fuc].click()
+        chosen_project = projects[fuc]
+        chosen_project.click()
         
         if fuc < div:
             try:
@@ -131,14 +134,26 @@ def main():
             except:
                 sys.exit('Project is past deadline.')
 
+        print(f'You are submitting the following project: {chosen_course.text}, {chosen_project.text}.')
+        while True:
+            proceed = input('Proceed? (y/n): ')
+            if proceed == 'y': break
+            if proceed == 'n': sys.exit()
+
         driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
         driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
         print('Project submitted.')
         
+        outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
         print()
         print('SUBMISSION OUTLINE:')
-        outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
-        print(outline.text)    
+        print(outline.text)
+
+        autograder = driver.find_elements(By.CLASS_NAME, 'autograderResults--topLevelOutput')
+        if(len(autograder) > 0):
+            print()
+            print('AUTOGRADER RESULTS:')
+            print(autograder[0].text)
     
     finally:
         driver.quit()
