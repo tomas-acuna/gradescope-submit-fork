@@ -170,3 +170,8 @@ def main():
 
 
 main()
+
+# TODO:
+# Print correct results!
+# Fix random errors
+# Use onedir instead of onefile
