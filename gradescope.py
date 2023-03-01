@@ -114,8 +114,8 @@ def main():
         courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
         
         fuc = print_menu('Courses:', 'Choose course: ', courses)
-        chosen_course = courses[fuc]
-        chosen_course.click()
+        course_name = courses[fuc].text
+        courses[fuc].click()
 
         old_projects = driver.find_elements(By.CSS_SELECTOR, 'th a')
         new_projects = driver.find_elements(By.CSS_SELECTOR, 'th .js-submitAssignment')
@@ -125,8 +125,8 @@ def main():
         div = len(old_projects)
 
         fuc = print_menu('Projects:', 'Choose project: ', projects)
-        chosen_project = projects[fuc]
-        chosen_project.click()
+        project_name = projects[fuc].text
+        projects[fuc].click()
         
         if fuc < div:
             try:
@@ -134,9 +134,11 @@ def main():
             except:
                 sys.exit('Project is past deadline.')
 
-        print(f'You are submitting the following project: {chosen_course.text}, {chosen_project.text}.')
+        print('You are submitting the following project:')
+        print('  ' + course_name)
+        print('  ' + project_name)
         while True:
-            proceed = input('Proceed? (y/n): ')
+            proceed = input('Proceed? (y/n): ').strip()
             if proceed == 'y': break
             if proceed == 'n': sys.exit()
 
@@ -160,11 +162,3 @@ def main():
 
 
 main()
-
-# TODO
-# with block               # DONE
-# run in background        # DONE
-# message consistency      # DONE
-# print more results
-# refactor main function
-# no geckodriver.log
