@@ -65,7 +65,7 @@ def partitioned_args():
         if a[0] == '-': flags.append(a)
         else: other.append(a)
     return flags, other
-    
+
 
 def main():
     flags, args = partitioned_args()
@@ -83,15 +83,12 @@ def main():
     print('Connecting to Gradescope...')
 
     try:
-        # open browser
         if len(flags) == 0: 
-            options = webdriver.firefox.options.Options()
-            options.add_argument('-headless') 
-            driver = webdriver.Firefox(options=options)
+            driver = get_driver('-f') # Firefox is the default browser
         else: 
             driver = get_driver(flags[0])
     except:
-        sys.exit('Failed to open browser.\nYou can specify a different browser with the flags -e, -c, and -f.')
+        sys.exit('Failed to open browser.\nYou can specify a different browser with -e, -c, or -f.')
 
     try:
         driver.get('https://gradescope.com/')
@@ -155,5 +152,4 @@ main()
 # message consistency      # DONE
 # print more results
 # refactor main function
-# account for more errors  
 # no geckodriver.log
