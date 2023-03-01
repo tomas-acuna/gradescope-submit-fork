@@ -3,6 +3,7 @@
 # 2/25/2023
 
 import sys
+import os
 from os import path
 from pwinput import pwinput
 
@@ -40,22 +41,30 @@ def print_menu(title, prompt, els):
         print('Invalid input. Please try again.')
 
 
+def try_driver(fn):
+    try: 
+        return fn()
+    except:
+        print('Failed to open browser.')
+        sys.exit('You can specify a different browser with -e, -c, or -f.')
+
+
 def get_driver(flag):
     if flag in [ '-f', '--firefox' ]: 
         options = webdriver.firefox.options.Options()
         options.add_argument('-headless')
-        return webdriver.Firefox(options=options)
+        return try_driver(lambda: webdriver.Firefox(options=options))
     if flag in [ '-c', '--chrome' ]: 
         options = webdriver.chrome.options.Options()
         options.add_argument('-headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        return webdriver.Chrome(options=options)
+        return try_driver(lambda: webdriver.Chrome(options=options))
     if flag in [ '-e', '--edge']: 
         options = webdriver.edge.options.Options()
         options.add_argument('-headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        return webdriver.Edge(options=options)
-    sys.exit(f'Unknown flag: {flag}.')
+        return try_driver(lambda: webdriver.Edge(options=options))
+    sys.exit(f'Unknown flag: {flag}')
 
 
 def partitioned_args():
@@ -92,19 +101,16 @@ def main():
     
     file_arg = args[0]
     if(not path.isfile(file_arg)):
-        sys.exit('File does not exist.')
+        sys.exit(f'File does not exist: {file_arg}')
     file_path = path.abspath(file_arg)
 
     email, password, config_exists = get_login()
     print('Connecting to Gradescope...')
 
-    try:
-        if len(flags) == 0: 
-            driver = get_driver('-f') # Firefox is the default browser
-        else: 
-            driver = get_driver(flags[0])
-    except:
-        sys.exit('Failed to open browser.\nYou can specify a different browser with -e, -c, or -f.')
+    if len(flags) == 0: 
+        driver = get_driver('-f') 
+    else: 
+        driver = get_driver(flags[0])
 
     try:
         driver.get('https://gradescope.com/')
@@ -159,6 +165,8 @@ def main():
     
     finally:
         driver.quit()
+        if path.isfile('geckodriver.log'):
+            os.remove('geckodriver.log')
 
 
 main()
