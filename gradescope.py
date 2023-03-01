@@ -54,16 +54,16 @@ def try_driver(fn):
 def get_driver(flag):
     if flag in [ '-f', '--firefox' ]: 
         options = webdriver.firefox.options.Options()
-        options.add_argument('-headless')
+        options.add_argument('--headless')
         return try_driver(lambda: webdriver.Firefox(options=options))
     if flag in [ '-c', '--chrome' ]: 
         options = webdriver.chrome.options.Options()
-        options.add_argument('-headless')
+        options.add_argument('--headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         return try_driver(lambda: webdriver.Chrome(options=options))
     if flag in [ '-e', '--edge']: 
         options = webdriver.edge.options.Options()
-        options.add_argument('-headless')
+        options.add_argument('--headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         return try_driver(lambda: webdriver.Edge(options=options))
     sys.exit(f'Unknown flag: {flag}')
