@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 # if file does not exist, reads from terminal
 def get_login():
     cpath = path.expanduser('~/.gradescope')
-    if path.exists(cpath):
+    if path.isfile(cpath):
         with open(cpath, 'r') as f:
             print('Reading from ~/.gradescope')
             email = f.readline().strip()
@@ -91,7 +91,7 @@ def main():
         sys.exit('Too many flags.')
     
     file_arg = args[0]
-    if(not path.exists(file_arg)):
+    if(not path.isfile(file_arg)):
         sys.exit('File does not exist.')
     file_path = path.abspath(file_arg)
 
