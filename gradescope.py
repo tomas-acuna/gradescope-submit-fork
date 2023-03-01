@@ -9,6 +9,8 @@ from pwinput import pwinput
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as ec
 
 # reads email and password from ~/.gradescope
 # if file does not exist, reads from terminal
@@ -151,6 +153,11 @@ def main():
         driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
         driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
         print('Project submitted.')
+        print('Waiting for results...')
+        
+        loading = WebDriverWait(driver, timeout=5).until(
+            ec.presence_of_element_located((By.CLASS_NAME, 'msg-success')))
+        WebDriverWait(driver, timeout=60).until(ec.staleness_of(loading))
         
         outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
         print()
@@ -172,6 +179,6 @@ def main():
 main()
 
 # TODO:
-# Print correct results!
+# Print correct results!          # DONE
 # Fix random errors
 # Use onedir instead of onefile
