@@ -93,6 +93,23 @@ def gradescope_login(driver, email, password, config_exists):
                 email = input('Email: ').strip()
                 password = pwinput(mask='*').strip()
 
+def print_submission_outline(outline):
+    lines = outline.split("\n")
+    state = 0
+    for line in lines:
+        if line and line[0] == "[":
+            if state == 1:
+                print("\033[31m" + line + "\033[0m")
+            elif state == 2:
+                print("\033[32m" + line + "\033[0m")
+            else:
+                print(line)
+        else:
+            print(line)
+            if line == "Failed Tests":
+                state = 1
+            if line == "Passed Tests":
+                state = 2
 
 def main():
     flags, args = partitioned_args()
@@ -162,7 +179,7 @@ def main():
         outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
         print()
         print('SUBMISSION OUTLINE:')
-        print(outline.text)
+        print_submission_outline(outline.text)
 
         autograder = driver.find_elements(By.CLASS_NAME, 'autograderResults--topLevelOutput')
         if(len(autograder) > 0):
