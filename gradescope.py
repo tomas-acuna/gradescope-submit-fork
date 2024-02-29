@@ -1,4 +1,4 @@
-# AUTHORS: Owen Bechtel, Omar Osman, Sean O'Dea
+# AUTHORS: Owen Bechtel, Omar Osman, Sean O'Dea, (small modifications by Tomas Acuna)
 # Hack(H)er413 Submission
 # 2/25/2023
 
@@ -21,14 +21,15 @@ def get_login():
             print('Reading from ~/.gradescope')
             email = f.readline().strip()
             password = f.readline().strip()
-            return email, password, True
-            
+            last = f.readline().strip()
+            return email, password, last, True
+
     else:
         print('There is no file located at ~/.gradescope')
         email = input('Email: ').strip()
         password = pwinput(mask='*').strip()
-        return email, password, False
-    
+        return email, password, None, False
+
 
 def print_menu(title, prompt, els):
     print(title)
@@ -38,13 +39,13 @@ def print_menu(title, prompt, els):
     while True:
         fuc = input(prompt).strip()
         # TO CLARIFY: FUC means formatted user choice
-        if fuc.isdigit() and int(fuc) < len(els): 
+        if fuc.isdigit() and int(fuc) < len(els):
             return int(fuc)
         print('Invalid input. Please try again.')
 
 
 def try_driver(fn):
-    try: 
+    try:
         return fn()
     except:
         print('Failed to open browser.')
@@ -52,16 +53,16 @@ def try_driver(fn):
 
 
 def get_driver(flag):
-    if flag in [ '-f', '--firefox' ]: 
+    if flag in [ '-f', '--firefox' ]:
         options = webdriver.firefox.options.Options()
         options.add_argument('--headless')
         return try_driver(lambda: webdriver.Firefox(options=options))
-    if flag in [ '-c', '--chrome' ]: 
+    if flag in [ '-c', '--chrome' ]:
         options = webdriver.chrome.options.Options()
         options.add_argument('--headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         return try_driver(lambda: webdriver.Chrome(options=options))
-    if flag in [ '-e', '--edge']: 
+    if flag in [ '-e', '--edge']:
         options = webdriver.edge.options.Options()
         options.add_argument('--headless')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -115,30 +116,35 @@ def main():
     flags, args = partitioned_args()
     if len(args) != 1:
         sys.exit('You must specify exactly one file.')
-    if len(flags) > 1:
+    if len(flags) > 2:
         sys.exit('Too many flags.')
-    
+
     file_arg = args[0]
     if(not path.isfile(file_arg)):
         sys.exit(f'File does not exist: {file_arg}')
     file_path = path.abspath(file_arg)
 
-    email, password, config_exists = get_login()
+    email, password, last, config_exists = get_login()
     print('Connecting to Gradescope...')
 
-    if len(flags) == 0: 
-        driver = get_driver('-f') 
-    else: 
-        driver = get_driver(flags[0])
+    if '-c' in flags:
+        driver = get_driver('-c')
+    elif '-e' in flags:
+        driver = get_driver('-e')
+    else:
+        driver = get_driver('-f')
 
     try:
         driver.get('https://gradescope.com/')
         driver.find_element(By.CLASS_NAME, 'js-logInButton').click()
-        
-        term = gradescope_login(driver, email, password, config_exists)                    
+
+        term = gradescope_login(driver, email, password, config_exists)
         courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
-        
-        fuc = print_menu('Courses:', 'Choose course: ', courses)
+
+        if '-s' in flags:
+            fuc = int(last.split()[0])
+        else:
+            fuc = print_menu('Courses:', 'Choose course: ', courses)
         course_name = courses[fuc].text
         courses[fuc].click()
 
@@ -149,10 +155,18 @@ def main():
         projects = old_projects + new_projects
         div = len(old_projects)
 
-        fuc = print_menu('Projects:', 'Choose project: ', projects)
-        project_name = projects[fuc].text
-        projects[fuc].click()
-        
+        if '-s' in flags:
+            fuc2 = int(last.split()[1])
+        else:
+            fuc2 = print_menu('Projects:', 'Choose project: ', projects)
+        project_name = projects[fuc2].text
+        projects[fuc2].click()
+
+        if '-s' not in flags:
+            cpath = path.expanduser('~/.gradescope')
+            with open(cpath, 'w') as file:
+                file.write("\n".join((email, password, str(fuc) + " " + str(fuc2))))
+
         if fuc < div:
             try:
                 driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
@@ -171,11 +185,11 @@ def main():
         driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
         print('Project submitted.')
         print('Waiting for results...')
-        
+
         loading = WebDriverWait(driver, timeout=5).until(
             ec.presence_of_element_located((By.CLASS_NAME, 'msg-success')))
         WebDriverWait(driver, timeout=60).until(ec.staleness_of(loading))
-        
+
         outline = driver.find_element(By.CLASS_NAME, 'submissionOutline')
         print()
         print('SUBMISSION OUTLINE:')
@@ -186,7 +200,7 @@ def main():
             print()
             print('AUTOGRADER RESULTS:')
             print(autograder[0].text)
-    
+
     finally:
         driver.quit()
         if path.isfile('geckodriver.log'):
