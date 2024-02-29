@@ -167,7 +167,7 @@ def main():
             with open(cpath, 'w') as file:
                 file.write("\n".join((email, password, str(fuc) + " " + str(fuc2))))
 
-        if fuc < div:
+        if fuc2 < div:
             try:
                 driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
             except:
