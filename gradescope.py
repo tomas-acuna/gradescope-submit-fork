@@ -1,4 +1,4 @@
-# AUTHORS: Owen Bechtel, Omar Osman, Sean O'Dea, (small modifications by Tomas Acuna)
+# AUTHORS: Owen Bechtel, Omar Osman, Sean O'Dea
 # Hack(H)er413 Submission
 # 2/25/2023
 
@@ -14,21 +14,26 @@ from selenium.webdriver.support import expected_conditions as ec
 
 # reads email and password from ~/.gradescope
 # if file does not exist, reads from terminal
-def get_login():
+def get_login(same):
     cpath = path.expanduser('~/.gradescope')
     if path.isfile(cpath):
         with open(cpath, 'r') as f:
             print('Reading from ~/.gradescope')
             email = f.readline().strip()
             password = f.readline().strip()
-            last = f.readline().strip()
-            return email, password, last, True
+            if same:
+                last_course = f.readline().strip()
+                last_assign = f.readline().strip()
+            else:
+                last_course = None
+                last_assign = None
+            return email, password, last_course, last_assign, True
 
     else:
         print('There is no file located at ~/.gradescope')
         email = input('Email: ').strip()
         password = pwinput(mask='*').strip()
-        return email, password, None, False
+        return email, password, None, None, False
 
 
 def print_menu(title, prompt, els):
@@ -43,6 +48,8 @@ def print_menu(title, prompt, els):
             return int(fuc)
         print('Invalid input. Please try again.')
 
+def get_fuc(els, name):
+    return list(map(lambda el: el.text, els)).index(name)
 
 def try_driver(fn):
     try:
@@ -112,6 +119,15 @@ def print_submission_outline(outline):
             if line == "Passed Tests":
                 state = 2
 
+def get_confirmation(cn, pn):
+    print('You are submitting the following project:')
+    print('  ' + cn)
+    print('  ' + pn)
+    while True:
+        proceed = input('Proceed? (y/n): ').strip()
+        if proceed == 'y': break
+        if proceed == 'n': sys.exit()
+
 def main():
     flags, args = partitioned_args()
     if len(args) != 1:
@@ -124,7 +140,13 @@ def main():
         sys.exit(f'File does not exist: {file_arg}')
     file_path = path.abspath(file_arg)
 
-    email, password, last, config_exists = get_login()
+    same = '-s' in flags
+
+    email, password, last_course, last_assign, config_exists = get_login(same)
+
+    if same:
+        get_confirmation(last_course, last_assign)
+
     print('Connecting to Gradescope...')
 
     if '-c' in flags:
@@ -141,8 +163,8 @@ def main():
         term = gradescope_login(driver, email, password, config_exists)
         courses = term.find_elements(By.CLASS_NAME, 'courseBox--shortname')
 
-        if '-s' in flags:
-            fuc = int(last.split()[0])
+        if same:
+            fuc = get_fuc(courses, last_course)
         else:
             fuc = print_menu('Courses:', 'Choose course: ', courses)
         course_name = courses[fuc].text
@@ -155,31 +177,26 @@ def main():
         projects = old_projects + new_projects
         div = len(old_projects)
 
-        if '-s' in flags:
-            fuc2 = int(last.split()[1])
+        if same:
+            fuc2 = get_fuc(projects, last_assign)
         else:
             fuc2 = print_menu('Projects:', 'Choose project: ', projects)
         project_name = projects[fuc2].text
         projects[fuc2].click()
 
-        if '-s' not in flags:
+        if not same:
             cpath = path.expanduser('~/.gradescope')
             with open(cpath, 'w') as file:
-                file.write("\n".join((email, password, str(fuc) + " " + str(fuc2))))
+                file.write("\n".join((email, password, course_name, project_name)))
 
-        if fuc2 < div:
+        if fuc < div:
             try:
                 driver.find_element(By.CLASS_NAME, 'js-submitAssignment').click()
             except:
                 sys.exit('Project is past deadline.')
 
-        print('You are submitting the following project:')
-        print('  ' + course_name)
-        print('  ' + project_name)
-        while True:
-            proceed = input('Proceed? (y/n): ').strip()
-            if proceed == 'y': break
-            if proceed == 'n': sys.exit()
+        if not same:
+            get_confirmation(course_name, project_name)
 
         driver.find_element(By.CLASS_NAME, 'dz-hidden-input').send_keys(file_path)
         driver.find_element(By.CLASS_NAME, 'js-submitCode').click()
