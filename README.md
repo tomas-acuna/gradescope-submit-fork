@@ -35,3 +35,6 @@ This program runs a browser in the background in order to access Gradescope. The
 * Edge: `-e` or `--edge`
 * Firefox: `-f` or `--firefox`
  
+## Addition in Fork
+
+This fork adds a `-s` flag standing for "same" which lets users automatically submit the the same assignment as last time.
