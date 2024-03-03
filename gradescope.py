@@ -105,7 +105,7 @@ def print_submission_outline(outline):
     lines = outline.split("\n")
     state = 0
     for line in lines:
-        if line and line[0] == "[":
+        if line and line[-1] == ")":
             if state == 1:
                 print("\033[31m" + line + "\033[0m")
             elif state == 2:
